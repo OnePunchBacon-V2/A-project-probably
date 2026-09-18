@@ -169,12 +169,12 @@ namespace Vanguard.Player
             }
 
             if (jumpPressed && _controller.isGrounded && _slideTimer <= 0f && !_mantling)
-                _velocity.y = jumpSpeed;
+            {
+                if (!TryMantle())
+                    _velocity.y = jumpSpeed;
+            }
             else
                 _velocity.y -= gravity * Time.deltaTime;
-
-            if (jumpPressed && _controller.isGrounded && !TryMantle())
-                _velocity.y = jumpSpeed;
 
             Vector3 displacement = _velocity * Time.deltaTime;
             if (_mantling)
@@ -271,6 +271,31 @@ namespace Vanguard.Player
         public bool IsAiming()
         {
             return inputMap != null && inputMap.IsHeld(Vanguard.InputSystem.TouchControlAction.Aim);
+        }
+
+        public bool IsFireHeld()
+        {
+            return inputMap != null && inputMap.IsHeld(Vanguard.InputSystem.TouchControlAction.Fire);
+        }
+
+        public bool IsFirePressed()
+        {
+            return inputMap != null && inputMap.IsPressed(Vanguard.InputSystem.TouchControlAction.Fire);
+        }
+
+        public bool IsReloadPressed()
+        {
+            return inputMap != null && inputMap.IsPressed(Vanguard.InputSystem.TouchControlAction.Reload);
+        }
+
+        public bool IsSwitchWeaponPressed()
+        {
+            return inputMap != null && inputMap.IsPressed(Vanguard.InputSystem.TouchControlAction.SwitchWeapon);
+        }
+
+        public bool IsMeleePressed()
+        {
+            return inputMap != null && inputMap.IsPressed(Vanguard.InputSystem.TouchControlAction.Melee);
         }
 
         public float CurrentHorizontalSpeed()

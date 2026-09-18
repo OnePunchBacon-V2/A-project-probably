@@ -97,6 +97,7 @@ namespace Vanguard.Combat
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private LayerMask targetMask = ~0;
         [SerializeField] private LayerMask obstacleMask = ~0;
+        [SerializeField] private Vanguard.InputSystem.TouchActionMap inputMap;
         [SerializeField] private float maxRange = 300f;
 
         [Header("State")]
@@ -135,6 +136,11 @@ namespace Vanguard.Combat
                 return;
             }
 
+            if (inputMap == null)
+                inputMap = GetComponentInParent<Vanguard.InputSystem.TouchActionMap>();
+            if (inputMap == null)
+                inputMap = FindObjectOfType<Vanguard.InputSystem.TouchActionMap>();
+
             magazineAmmo = definition.magazineSize;
             reserveAmmo = definition.startingReserve;
             _equipEndTime = Time.time + definition.equipTime;
@@ -150,7 +156,7 @@ namespace Vanguard.Combat
 
         private void UpdateAimDownSights()
         {
-            bool aiming = Input.GetButton("Aim");
+            bool aiming = inputMap != null && inputMap.IsHeld(Vanguard.InputSystem.TouchControlAction.Aim);
             float speed = 1f / (aiming ? definition.adsTime : definition.hipFireTime);
             _adsAmount = Mathf.MoveTowards(_adsAmount, aiming ? 1f : 0f, speed * Time.deltaTime);
         }
@@ -177,8 +183,8 @@ namespace Vanguard.Combat
             if (_reloading || Time.time < _equipEndTime || Time.time < _recoilRecoverTime)
                 return;
 
-            bool fireHeld = Input.GetButton("Fire1");
-            bool firePressed = Input.GetButtonDown("Fire1");
+            bool fireHeld = inputMap != null && inputMap.IsHeld(Vanguard.InputSystem.TouchControlAction.Fire);
+            bool firePressed = inputMap != null && inputMap.IsPressed(Vanguard.InputSystem.TouchControlAction.Fire);
             if (!fireHeld && !firePressed)
             {
                 _firing = false;
@@ -263,8 +269,8 @@ namespace Vanguard.Combat
                 float damage = definition.GetDamage(hit.distance);
                 if (location == DamageLocation.Head)
                     damage *= definition.headMultiplier;
-                else if (location is DamageLocation.LeftArm or DamageLocation.RightArm or
-                    DamageLocation.LeftLeg or DamageLocation.RightLeg)
+                else if (location == DamageLocation.LeftArm || location == DamageLocation.RightArm ||
+                    location == DamageLocation.LeftLeg || location == DamageLocation.RightLeg)
                     damage *= definition.limbMultiplier;
 
                 Vector3 direction = (hit.point - origin).normalized;
@@ -296,8 +302,8 @@ namespace Vanguard.Combat
 
         private float GetMovementSpeedRatio()
         {
-            FirstPerson.Player.FirstPersonController controller =
-                GetComponentInParent<FirstPerson.Player.FirstPersonController>();
+            FirstPersonController controller =
+                GetComponentInParent<FirstPersonController>();
             return controller != null ? Mathf.Clamp01(controller.CurrentHorizontalSpeed() / 7f) : 0f;
         }
 
@@ -309,8 +315,8 @@ namespace Vanguard.Combat
             _accumulatedRecoil += recoil;
             _recoilRecoverTime = Time.time + definition.recoilRecoveryDelay;
 
-            FirstPerson.Player.FirstPersonController controller =
-                GetComponentInParent<FirstPerson.Player.FirstPersonController>();
+            FirstPersonController controller =
+                GetComponentInParent<FirstPersonController>();
             controller?.AddRecoil(recoil * 0.12f);
 
             Transform viewmodel = transform;
@@ -318,7 +324,7 @@ namespace Vanguard.Combat
             viewmodel.localRotation *= Quaternion.Euler(-recoil.x * 2f, 0f, 0f);
         }
 
-        private void Update()
+        private void LateUpdate()
         {
         }
 

@@ -209,7 +209,7 @@ namespace Vanguard.InputSystem
                 if (zone.Action == TouchControlAction.Look)
                     _lastLookPosition = touch.position;
 
-                if (touch.phase is TouchPhase.Ended or TouchPhase.Canceled)
+                if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
                 {
                     TouchActionState released = GetState(zone.Action);
                     released.Released = true;
